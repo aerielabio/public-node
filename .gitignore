@@ -1,0 +1,7 @@
+/staking-deposit-cli
+/execution/geth
+/execution/keystore
+/consensus/beacondata
+validator-linux-amd64
+validator-mac-amd64
+validator-mac-arm64

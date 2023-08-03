@@ -1,0 +1,169 @@
+version: "3.9"
+services:
+  # INIT THE GENESIS
+  geth-genesis:
+    image: "ethereum/client-go:v1.11.3"
+    command: --datadir=/execution init /misc/genesis.json
+    user: root
+    volumes:
+      - type: bind
+        source: ./execution
+        target: /execution
+      - type: bind
+        source: ./misc
+        target: /misc
+  # Runs the go-ethereum execution client with the specified, unlocked account and necessary
+  # APIs to allow for proof-of-stake consensus via Prysm.
+  geth:
+    image: "ethereum/client-go:v1.11.3"
+    networks:
+      mainnet_aerie_node:
+        ipv4_address: 172.19.0.2
+    command:
+      - --http
+      - --http.api=eth,engine,debug,web3,clique,personal,net,txpool
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --http.addr=0.0.0.0
+      - --http.port=${SEC_GETH_HTTP_PORT}
+      - --port=${SEC_GETH_PORT}
+      - --authrpc.port=${SEC_GETH_AUTHRPC_PORT}
+      - --authrpc.vhosts=*
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.jwtsecret=/misc/jwt.hex
+      - --datadir=/execution
+      - --syncmode=full
+      - --gcmode=archive
+      - --bootnodes=${EL_BOOTNODE}
+      - --networkid=${CHAIN_ID:-84886}
+      - --nat=extip:${SEC_GETH_IP}
+    ports:
+      - "${SEC_GETH_AUTHRPC_PORT}:${SEC_GETH_AUTHRPC_PORT}"
+      - "${SEC_GETH_HTTP_PORT}:${SEC_GETH_HTTP_PORT}"
+      - "${SEC_GETH_PORT}:${SEC_GETH_PORT}"
+      - "${SEC_GETH_PORT}:${SEC_GETH_PORT}/udp"
+    depends_on:
+      geth-genesis:
+        condition: service_completed_successfully
+    user: root
+    volumes:
+      - type: bind
+        source: ./execution
+        target: /execution
+      - type: bind
+        source: ./misc
+        target: /misc
+  # Runs a Prysm beacon chain from a specified genesis state created in the previous step
+  # and connects to go-ethereum in the same network as the execution client.
+  # The account used in go-ethereum is set as the suggested fee recipient for transactions
+  # proposed via the validators attached to the beacon node.
+  beacon:
+    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:v4.0.7"
+    networks:
+      mainnet_aerie_node:
+        ipv4_address: 172.19.0.3
+    command:
+      - --datadir=/consensus/beacondata
+      # No peers to sync with in this testnet, so setting to 0
+      - --min-sync-peers=0
+      - --bootstrap-node=${CL_BOOTNODE}
+      # The chain configuration file used for setting up Prysm
+      - --chain-config-file=/misc/config.yml
+      - --config-file=/misc/config.yml
+      # We specify the chain id used by our execution client
+      - --chain-id=${CHAIN_ID:-84886}
+      - --rpc-host=0.0.0.0
+      - --rpc-port=${SEC_BEACON_RPC_PORT}
+      - --contract-deployment-block=0
+      - --grpc-gateway-port=${SEC_BEACON_GRPC_PORT}
+      - --grpc-gateway-host=0.0.0.0
+      - --execution-endpoint=http://geth:${SEC_GETH_AUTHRPC_PORT}
+      - --accept-terms-of-use
+      - --jwt-secret=/misc/jwt.hex
+      - --enable-debug-rpc-endpoints
+      - --grpc-gateway-corsdomain=*
+      - --p2p-tcp-port=${SEC_BEACON_P2P_TCP_PORT}
+      - --p2p-udp-port=${SEC_BEACON_P2P_UDP_PORT}
+      - --monitoring-host=0.0.0.0
+      - --monitoring-port=${SEC_BEACON_MONITORING_PORT}
+      - --suggested-fee-recipient=0x1DfBc41e596FB71e62800d71fcfC44F1a8aDc7A0
+      - --checkpoint-sync-url=http://139.99.70.206:3500
+      - --genesis-beacon-api-url=http://139.99.70.206:3500
+      #- --peer=${CL_PEER}
+      - --minimum-peers-per-subnet=0
+      - --aggregate-parallel
+      - --enable-upnp
+      - --p2p-host-ip=${SEC_BEACON_IP}
+      #- --p2p-priv-key=/misc/p2pkey.txt
+      # To make the node become archive
+      - --slots-per-archive-point=64
+    depends_on:
+      geth:
+        condition: service_started
+    ports:
+      - "${SEC_BEACON_RPC_PORT}:${SEC_BEACON_RPC_PORT}"
+      - "${SEC_BEACON_GRPC_PORT}:${SEC_BEACON_GRPC_PORT}"
+      - "${SEC_BEACON_MONITORING_PORT}:${SEC_BEACON_MONITORING_PORT}"
+      - "${SEC_BEACON_P2P_TCP_PORT}:${SEC_BEACON_P2P_TCP_PORT}"
+      - "${SEC_BEACON_P2P_TCP_PORT}:${SEC_BEACON_P2P_TCP_PORT}/udp"
+      - "${SEC_BEACON_P2P_UDP_PORT}:${SEC_BEACON_P2P_UDP_PORT}"
+      - "${SEC_BEACON_P2P_UDP_PORT}:${SEC_BEACON_P2P_UDP_PORT}/udp"
+    volumes:
+      - type: bind
+        source: ./consensus
+        target: /consensus
+      - type: bind
+        source: ./misc
+        target: /misc
+  # ENABLE BELOW SERVICES IF YOU ARE GOING TO RUN A VALIDATOR
+  # prometheus:
+  #   image: "prom/prometheus:latest"
+  #   volumes:
+  #     - ./prometheus:/etc/prometheus
+  #     - ./misc/prometheus.yml:/etc/prometheus/prometheus.yml
+  #   ports:
+  #     - 9090:9090
+  #   depends_on:
+  #     beacon-chain_secondary:
+  #       condition: service_started
+  #   networks:
+  #     mainnet_aerie:
+  #       ipv4_address: 172.19.0.9
+  # docker-exporter:
+  #   image: "wywywywy/docker_stats_exporter:latest"
+  #   volumes:
+  #     - ./var/run/docker.sock:/var/run/docker.sock
+  #   expose:
+  #     - 9487
+  #   depends_on:
+  #     prometheus:
+  #       condition: service_started
+  #   networks:
+  #     mainnet_aerie:
+  #       ipv4_address: 172.19.0.10
+  # grafana:
+  #   image: grafana/grafana:7.5.7
+  #   ports:
+  #     - 3000:3000
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./misc/grafana:/etc/grafana/provisioning/datasources
+  #     - grafana-data:/var/lib/grafana
+  #   depends_on:
+  #     prometheus:
+  #       condition: service_started
+  #   networks:
+  #     mainnet_aerie:
+  #       ipv4_address: 172.19.0.11
+
+volumes:
+  grafana-data:
+
+# The Network are initialized by bootnode
+networks:
+  mainnet_aerie_node:
+    name: mainnet_aerie_node
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.19.0.0/16"
