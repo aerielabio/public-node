@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 12s
+
+scrape_configs:
+  - job_name: "docker_stats_exporter"
+    metrics_path: /
+    static_configs:
+      - targets:
+          - "172.19.0.10:9487"
+  - job_name: "validator"
+    static_configs:
+      - targets: ["172.19.0.3:8082"]
+  - job_name: "beacon node"
+    static_configs:
+      - targets: ["172.19.0.4:8080"]

@@ -1,0 +1,1 @@
+docker-compose -f dockers/gethbeacon.yml up -d 

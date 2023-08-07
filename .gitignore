@@ -5,3 +5,4 @@
 validator-linux-amd64
 validator-mac-amd64
 validator-mac-arm64
+/misc/wallet-dir

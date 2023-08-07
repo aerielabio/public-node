@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  # INIT THE GENESIS
+  geth-genesis:
+    image: "ethereum/client-go:v1.11.3"
+    command: --datadir=/execution init /misc/genesis.json
+    user: root
+    volumes:
+      - type: bind
+        source: ../execution
+        target: /execution
+      - type: bind
+        source: ../misc
+        target: /misc
+
+# The Network are initialized by bootnode
+networks:
+  mainnet_aerie_node:
+    name: mainnet_aerie_node
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.19.0.0/16"

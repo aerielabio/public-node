@@ -1,0 +1,1 @@
+docker-compose -f dockers/genesis.yml up -d 

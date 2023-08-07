@@ -1,17 +1,5 @@
 version: "3.9"
 services:
-  # INIT THE GENESIS
-  geth-genesis:
-    image: "ethereum/client-go:v1.11.3"
-    command: --datadir=/execution init /misc/genesis.json
-    user: root
-    volumes:
-      - type: bind
-        source: ./execution
-        target: /execution
-      - type: bind
-        source: ./misc
-        target: /misc
   # Runs the go-ethereum execution client with the specified, unlocked account and necessary
   # APIs to allow for proof-of-stake consensus via Prysm.
   geth:
@@ -21,7 +9,7 @@ services:
         ipv4_address: 172.19.0.2
     command:
       - --http
-      - --http.api=eth,engine,debug,web3,clique,personal,net,txpool
+      - --http.api=eth,engine,debug,web3,personal,net,txpool
       - --http.corsdomain=*
       - --http.vhosts=*
       - --http.addr=0.0.0.0
@@ -37,21 +25,20 @@ services:
       - --bootnodes=${EL_BOOTNODE}
       - --networkid=${CHAIN_ID:-84886}
       - --nat=extip:${SEC_GETH_IP}
+      - --discovery.port=30301
+      - --v5disc
     ports:
       - "${SEC_GETH_AUTHRPC_PORT}:${SEC_GETH_AUTHRPC_PORT}"
       - "${SEC_GETH_HTTP_PORT}:${SEC_GETH_HTTP_PORT}"
       - "${SEC_GETH_PORT}:${SEC_GETH_PORT}"
       - "${SEC_GETH_PORT}:${SEC_GETH_PORT}/udp"
-    depends_on:
-      geth-genesis:
-        condition: service_completed_successfully
     user: root
     volumes:
       - type: bind
-        source: ./execution
+        source: ../execution
         target: /execution
       - type: bind
-        source: ./misc
+        source: ../misc
         target: /misc
   # Runs a Prysm beacon chain from a specified genesis state created in the previous step
   # and connects to go-ethereum in the same network as the execution client.
@@ -64,7 +51,6 @@ services:
         ipv4_address: 172.19.0.3
     command:
       - --datadir=/consensus/beacondata
-      # No peers to sync with in this testnet, so setting to 0
       - --min-sync-peers=0
       - --bootstrap-node=${CL_BOOTNODE}
       # The chain configuration file used for setting up Prysm
@@ -87,13 +73,14 @@ services:
       - --monitoring-host=0.0.0.0
       - --monitoring-port=${SEC_BEACON_MONITORING_PORT}
       - --suggested-fee-recipient=0x1DfBc41e596FB71e62800d71fcfC44F1a8aDc7A0
-      - --checkpoint-sync-url=http://139.99.70.206:3500
-      - --genesis-beacon-api-url=http://139.99.70.206:3500
-      #- --peer=${CL_PEER}
+      - --checkpoint-sync-url=https://checkpoint.aerielab.io/
+      - --genesis-beacon-api-url=https://checkpoint.aerielab.io/
+      - --peer=${CL_PEER}
       - --minimum-peers-per-subnet=0
       - --aggregate-parallel
       - --enable-upnp
       - --p2p-host-ip=${SEC_BEACON_IP}
+      - --deposit-contract=0x0000009f683783a040d39a235cae7bab6142bc1a
       #- --p2p-priv-key=/misc/p2pkey.txt
       # To make the node become archive
       - --slots-per-archive-point=64
@@ -110,54 +97,11 @@ services:
       - "${SEC_BEACON_P2P_UDP_PORT}:${SEC_BEACON_P2P_UDP_PORT}/udp"
     volumes:
       - type: bind
-        source: ./consensus
+        source: ../consensus
         target: /consensus
       - type: bind
-        source: ./misc
+        source: ../misc
         target: /misc
-  # ENABLE BELOW SERVICES IF YOU ARE GOING TO RUN A VALIDATOR
-  # prometheus:
-  #   image: "prom/prometheus:latest"
-  #   volumes:
-  #     - ./prometheus:/etc/prometheus
-  #     - ./misc/prometheus.yml:/etc/prometheus/prometheus.yml
-  #   ports:
-  #     - 9090:9090
-  #   depends_on:
-  #     beacon-chain_secondary:
-  #       condition: service_started
-  #   networks:
-  #     mainnet_aerie:
-  #       ipv4_address: 172.19.0.9
-  # docker-exporter:
-  #   image: "wywywywy/docker_stats_exporter:latest"
-  #   volumes:
-  #     - ./var/run/docker.sock:/var/run/docker.sock
-  #   expose:
-  #     - 9487
-  #   depends_on:
-  #     prometheus:
-  #       condition: service_started
-  #   networks:
-  #     mainnet_aerie:
-  #       ipv4_address: 172.19.0.10
-  # grafana:
-  #   image: grafana/grafana:7.5.7
-  #   ports:
-  #     - 3000:3000
-  #   restart: unless-stopped
-  #   volumes:
-  #     - ./misc/grafana:/etc/grafana/provisioning/datasources
-  #     - grafana-data:/var/lib/grafana
-  #   depends_on:
-  #     prometheus:
-  #       condition: service_started
-  #   networks:
-  #     mainnet_aerie:
-  #       ipv4_address: 172.19.0.11
-
-volumes:
-  grafana-data:
 
 # The Network are initialized by bootnode
 networks:
