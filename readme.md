@@ -1,5 +1,5 @@
 
-# AERIE MAINNET EL & CL
+# AERIE MAINNET
 
 We have prepared a Docker container that will facilitate running the EL (Execution Layer) and CL (Consensus Layer) connected to the Aerie network.
 
@@ -20,3 +20,5 @@ Operating instructions:
 5. Next, run the following command `./genesis.sh`.
 6. After that, run `./node.sh` command.
 7. Make sure both containers are running properly by executing `docker ps` command.
+
+To Re-execute the nodes after you make a restart or something else, you dont have to run `genesis.sh` again
