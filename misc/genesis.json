@@ -16,7 +16,7 @@
 		"londonBlock": 0,
 		"arrowGlacierBlock": 0,
 		"grayGlacierBlock": 0,
-		"shanghaiTime": 1691392783,
+		"shanghaiTime": 1691558568,
 		"terminalTotalDifficulty": 0,
 		"clique": {
 			"period": 5,
@@ -24,7 +24,7 @@
 		}
 	},
 	"nonce": "0x0",
-	"timestamp": "0x64d09aef",
+	"timestamp": "0x64d32288",
 	"extraData": "0x00000000000000000000000000000000000000000000000000000000000000001dfbc41e596fb71e62800d71fcfc44f1a8adc7a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
 	"gasLimit": "0x5f5e100",
 	"difficulty": "0x1",
@@ -36,7 +36,7 @@
 			"balance": "0x0"
 		},
 		"095b9519a3357cdfa45d01f4c9e52c2b14872006": {
-			"balance": "0x295be96e64066972000000"
+			"balance": "0x14adf4b7320334b9000000"
 		},
 		"98ff1003bf241f54f908bcb79f8a21c643b75351": {
 			"balance": "0x295be96e640669720000000"
