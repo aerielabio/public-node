@@ -9,7 +9,7 @@ services:
         ipv4_address: 172.19.0.2
     command:
       - --http
-      - --http.api=eth,engine,debug,web3,personal,net,txpool
+      - --http.api=eth,engine,debug,web3,personal,net,txpool,trace
       - --http.corsdomain=*
       - --http.vhosts=*
       - --http.addr=0.0.0.0
@@ -26,6 +26,7 @@ services:
       - --networkid=${CHAIN_ID:-84886}
       - --nat=extip:${SEC_GETH_IP}
       - --discovery.port=30301
+      - --miner.gaslimit=100000000
       - --v5disc
     ports:
       - "${SEC_GETH_AUTHRPC_PORT}:${SEC_GETH_AUTHRPC_PORT}"
