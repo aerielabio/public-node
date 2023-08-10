@@ -76,7 +76,6 @@ services:
       - --suggested-fee-recipient=0x1DfBc41e596FB71e62800d71fcfC44F1a8aDc7A0
       - --checkpoint-sync-url=https://checkpoint.aerielab.io/
       - --genesis-beacon-api-url=https://checkpoint.aerielab.io/
-      - --peer=${CL_PEER}
       - --minimum-peers-per-subnet=0
       - --aggregate-parallel
       - --enable-upnp
