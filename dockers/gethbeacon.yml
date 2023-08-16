@@ -83,7 +83,7 @@ services:
       - --deposit-contract=0x0000009f683783a040d39a235cae7bab6142bc1a
       #- --p2p-priv-key=/misc/p2pkey.txt
       # To make the node become archive
-      - --slots-per-archive-point=64
+      - --slots-per-archive-point=256
     depends_on:
       geth:
         condition: service_started
