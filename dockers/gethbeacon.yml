@@ -84,6 +84,7 @@ services:
       #- --p2p-priv-key=/misc/p2pkey.txt
       # To make the node become archive
       - --slots-per-archive-point=256
+      - --block-batch-limit=200
     depends_on:
       geth:
         condition: service_started
