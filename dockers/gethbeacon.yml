@@ -84,7 +84,12 @@ services:
       #- --p2p-priv-key=/misc/p2pkey.txt
       # To make the node become archive
       - --slots-per-archive-point=256
+      #- --verbosity=debug
+      - --p2p-static-id
       - --block-batch-limit=200
+      #- --log-file=/misc/logs/beaconlog.txt
+      # WL
+      #- --peer=/ip4/139.99.70.206/tcp/13000/p2p/16Uiu2HAm7ZH2gLoStE1bimJBkxfJasQXct4aWDhMXX5SYT3HFXiR
     depends_on:
       geth:
         condition: service_started
