@@ -86,7 +86,7 @@ services:
       - --slots-per-archive-point=256
       #- --verbosity=debug
       - --p2p-static-id
-      - --block-batch-limit=200
+      - --block-batch-limit=100
       #- --log-file=/misc/logs/beaconlog.txt
       # WL
       #- --peer=/ip4/139.99.70.206/tcp/13000/p2p/16Uiu2HAm7ZH2gLoStE1bimJBkxfJasQXct4aWDhMXX5SYT3HFXiR
